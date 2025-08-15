@@ -1,6 +1,14 @@
-# PostgreSQL Automated Backup Crontab
-# Run daily backup at 2:00 AM
-0 2 * * * /scripts/backup.sh >> /var/log/cron.log 2>&1
+# InfluxDB Backup Cron Jobs
+# This file is processed by the entrypoint script to configure cron jobs
 
-# Log rotation - keep cron logs manageable
-0 0 * * 0 find /var/log/cron.log -size +10M -exec truncate -s 0 {} \;
+# Daily incremental backup at 2:00 AM
+0 2 * * * backup /usr/local/bin/backup.sh incremental >> /var/log/backup.log 2>&1
+
+# Weekly full backup on Sundays at 3:00 AM
+0 3 * * 0 backup /usr/local/bin/backup.sh full >> /var/log/backup.log 2>&1
+
+# Daily backup cleanup at 4:00 AM
+0 4 * * * backup /usr/local/bin/backup_utils.sh cleanup >> /var/log/backup.log 2>&1
+
+# Weekly backup health check on Saturdays at 5:00 AM
+0 5 * * 6 backup /usr/local/bin/backup_utils.sh stats >> /var/log/backup.log 2>&1
