@@ -3,32 +3,55 @@ version: '3.8'
 services:
   db:
     build: ./db
+    container_name: postgres-db
     environment:
       POSTGRES_USER: devuser
       POSTGRES_PASSWORD: devpass
       POSTGRES_DB: devdb
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devuser -d devdb"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   backup:
     build: ./backup
+    container_name: postgres-backup
     environment:
       PGUSER: devuser
       PGPASSWORD: devpass
       PGDATABASE: devdb
       PGHOST: db
+      PGPORT: 5432
     depends_on:
       - db
     volumes:
       - ./remote:/remote
       - ./backups:/backups
+      - backup_logs:/var/log
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h db -U devuser -d devdb"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
 networks:
   appnet:
+    driver: bridge
 
 volumes:
   db_data:
+    driver: local
+  backup_logs:
+    driver: local

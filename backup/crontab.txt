@@ -1,0 +1,6 @@
+# PostgreSQL Automated Backup Crontab
+# Run daily backup at 2:00 AM
+0 2 * * * /scripts/backup.sh >> /var/log/cron.log 2>&1
+
+# Log rotation - keep cron logs manageable
+0 0 * * 0 find /var/log/cron.log -size +10M -exec truncate -s 0 {} \;
