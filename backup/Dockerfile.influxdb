@@ -1,0 +1,51 @@
+FROM ubuntu:22.04
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    gzip \
+    openssl \
+    cron \
+    python3 \
+    python3-pip \
+    python3-requests \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install InfluxDB CLI
+RUN wget https://dl.influxdata.com/influxdb/releases/influxdb2-client-2.7.1-linux-amd64.tar.gz \
+    && tar xvzf influxdb2-client-2.7.1-linux-amd64.tar.gz \
+    && cp influxdb2-client-2.7.1-linux-amd64/influx /usr/local/bin/ \
+    && rm -rf influxdb2-client-2.7.1-linux-amd64*
+
+# Create backup user and directories
+RUN useradd -m -s /bin/bash backup \
+    && mkdir -p /backups /remote /var/log /scripts \
+    && chown -R backup:backup /backups /remote /var/log /scripts
+
+# Copy backup scripts
+COPY backup.sh /usr/local/bin/
+COPY backup_utils.sh /usr/local/bin/
+COPY crontab.txt /etc/cron.d/backup
+COPY entrypoint.sh /entrypoint.sh
+
+# Make scripts executable
+RUN chmod +x /usr/local/bin/*.sh /entrypoint.sh \
+    && chmod 644 /etc/cron.d/backup
+
+# Switch to backup user
+USER backup
+
+# Set working directory
+WORKDIR /home/backup
+
+# Expose ports (if needed for monitoring)
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD pgrep -f backup || exit 1
+
+# Entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["cron", "-f"]
