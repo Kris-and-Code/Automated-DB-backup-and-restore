@@ -185,17 +185,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 This system is designed for production use but should be thoroughly tested in your specific environment before deployment. Always maintain multiple backup copies and test restore procedures regularly.
 
-## 📞 Support
 
-For issues and questions:
-1. Check the troubleshooting guide
-2. Review the documentation
-3. Open an issue on GitHub
-4. Contact the development team
 
 ---
 
-**Last Updated**: $(date)
+**Last Updated**: $(20.08.2025)
 **Version**: 1.0.0
 **Compatibility**: InfluxDB 2.x, Linux (Ubuntu/CentOS)
-# Automated-DB-backup-and-restore
+
